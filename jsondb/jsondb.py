@@ -4,7 +4,6 @@ import sys
 from shutil import rmtree,move,copy
 from json import loads,dumps
 
-sys.path.insert(1, '/home/codekage/workspace/transfer-pi/logger')
 import logger
 
 
