@@ -191,9 +191,10 @@ class Table(object):
 query_keywords = ['create','delete','update']      
 
 class Database(object):
-    def __init__(self,name,path):
+    def __init__(self,name:str,path:str,logger:logger.Logger=logger.Logger()):
         self._name = name
         self._path = os.path.join(path,name)
+        self._logger = logger
         
         for table in os.listdir(self._path):
             if table not in query_keywords:
@@ -220,32 +221,32 @@ class Database(object):
     def createTable(self,name,primary_key):
         path = os.path.join(self._path,name)
         if os.path.isdir(path):
-            logger.warning(f"Table {name} Already Exists.")
+            self._logger.warning(f"Table {name} Already Exists.")
         else:
             os.mkdir(path)
             open(os.path.join(path,"primary_key"),"w+").write(primary_key)
             self.__dict__[name] = Table(name,path)
-            logger.success(f"Table {name} Created Succesfully.")
+            self._logger.success(f"Table {name} Created Succesfully.")
     
     def deleteTable(self,name:str):
         path = os.path.join(self._path,name)
         if not os.path.isdir(path):
-            logger.error(f"Table {name} Does Not Exist.")
+            self._logger.error(f"Table {name} Does Not Exist.")
         else:
             rmtree(path)
             del self.__dict__[name]
-            logger.success(f"Table {name} Deleted Succesfully.")
+            self._logger.success(f"Table {name} Deleted Succesfully.")
     
     def renameTable(self,old:str,new:str):
         path = os.path.join(self._path,old)
         if not os.path.isdir(path):
-            logger.error(f"Table {old} Does Not Exist.")
+            self._logger.error(f"Table {old} Does Not Exist.")
         else:
             path_ = os.path.join(self._path,new)
             move(path,path_)
             del self.__dict__[old]
             self.__dict__[new] = Table(new,path_)
-            logger.success(f"Table Renamed Succesfully {old} -> {new}.")
+            self._logger.success(f"Table Renamed Succesfully {old} -> {new}.")
 
 
 
@@ -253,16 +254,17 @@ class Cursor(object):
     """
     Cursor Class For JSONDB
     """
-    def __init__(self,path:str="./",auth:dict={}):
+    def __init__(self,path:str="./",auth:dict={},logger:logger.Logger=logger.Logger()):
         self._path = path
         self._auth = auth
         self._db_path = os.path.join(self._path,"db")
+        self._logger = logger
         
         if not os.path.isdir(self._db_path):
             os.mkdir(self._db_path)
             
         for db in os.listdir(self._db_path):
-            self.__dict__[db] = Database(db,self._db_path)
+            self.__dict__[db] = Database(db,self._db_path,logger=logger)
             
     def __getitem__(self,key)->Database:
         return self.__dict__[key]
@@ -275,9 +277,9 @@ class Cursor(object):
         if not os.path.isdir(path):
             os.mkdir(path)
             self.__dict__[name] = Database(name,self._db_path)
-            logger.success(f"Database {name} Created Succesfully.")
+            self._logger.success(f"Database {name} Created Succesfully.")
         else:
-            logger.error(f"Database {name} Already Exists.")
+            self._logger.error(f"Database {name} Already Exists.")
 
     def listDB(self,):
         col,_ = os.get_terminal_size()
@@ -293,11 +295,11 @@ class Cursor(object):
     def deleteDB(self,name:str):
         path = os.path.join(self._path,"db",name)
         if not os.path.isdir(path):
-            logger.error(f"Database {name} Does Not Exist.")
+            self._logger.error(f"Database {name} Does Not Exist.")
         else:
             rmtree(path)
             del self.__dict__[name]
-            logger.success(f"Database {name} Deleted Succesfully.")
+            self._logger.success(f"Database {name} Deleted Succesfully.")
 
 
 
