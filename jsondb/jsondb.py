@@ -264,7 +264,7 @@ class Cursor(object):
             os.mkdir(self._db_path)
             
         for db in os.listdir(self._db_path):
-            self.__dict__[db] = Database(db,self._db_path,logger=logger)
+            self.__dict__[db] = Database(db,self._db_path,logger=self._logger)
             
     def __getitem__(self,key)->Database:
         return self.__dict__[key]
